@@ -46,12 +46,36 @@
     <ClCompile Include="qhotkey_win.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hsvselect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="picwindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="qimagewidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DnfFullScreen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DnfMiniMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="qhotkey.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="qhotkey_p.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="hsvselect.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="picwindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="DnfMiniMap.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -65,6 +89,15 @@
     <ClInclude Include="yolo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="qimagewidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassAbstract.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DnfFullScreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="infer.cu" />
@@ -72,5 +105,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="hsvselect.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>

@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.34902.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AutoXML", "AutoXML\AutoXML.vcxproj", "{D91D4EE5-9835-49C8-83B2-DA06193B1A37}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "窗口位置", "窗口位置\窗口位置.vcxproj", "{7DB7E436-59B7-4515-9A03-8BB3EDC5B436}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{D91D4EE5-9835-49C8-83B2-DA06193B1A37}.Debug|x64.Build.0 = Debug|x64
 		{D91D4EE5-9835-49C8-83B2-DA06193B1A37}.Release|x64.ActiveCfg = Release|x64
 		{D91D4EE5-9835-49C8-83B2-DA06193B1A37}.Release|x64.Build.0 = Release|x64
+		{7DB7E436-59B7-4515-9A03-8BB3EDC5B436}.Debug|x64.ActiveCfg = Debug|x64
+		{7DB7E436-59B7-4515-9A03-8BB3EDC5B436}.Debug|x64.Build.0 = Debug|x64
+		{7DB7E436-59B7-4515-9A03-8BB3EDC5B436}.Release|x64.ActiveCfg = Release|x64
+		{7DB7E436-59B7-4515-9A03-8BB3EDC5B436}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

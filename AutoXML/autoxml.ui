@@ -50,6 +50,48 @@
          </spacer>
         </item>
         <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="sp_caijika"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>X坐标</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>采集卡</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Y坐标</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="sp_x">
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="sp_y">
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
            <string>图片保存格式</string>
@@ -133,23 +175,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="screenScale">
-        <item>
-         <property name="text">
-          <string>16:9</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>4:3</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>16:10</string>
-         </property>
-        </item>
-       </widget>
+       <widget class="QComboBox" name="screenScale"/>
       </item>
       <item>
        <widget class="QPushButton" name="addYolo">
@@ -219,9 +245,16 @@
      <x>0</x>
      <y>0</y>
      <width>1520</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>功能</string>
+    </property>
+    <addaction name="actionhsv"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -232,6 +265,11 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionhsv">
+   <property name="text">
+    <string>hsv筛选</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

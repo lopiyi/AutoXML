@@ -3,18 +3,13 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <IncludePath>D:\opencv4.8\include\opencv2;D:\opencv4.8\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\opencv4.8\x64\vc16\lib;$(LibraryPath)</LibraryPath>
-    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
+    <IncludePath>F:\SoftWare\opencv-4.8.0\install\include\opencv2;F:\SoftWare\opencv-4.8.0\install\include;$(IncludePath)</IncludePath>
+    <LibraryPath>F:\SoftWare\opencv-4.8.0\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>D:\opencv4.8\x64\vc16\lib\*.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>F:\SoftWare\opencv-4.8.0\lib\Release\*.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <ClCompile>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

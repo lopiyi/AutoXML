@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{D91D4EE5-9835-49C8-83B2-DA06193B1A37}</ProjectGuid>
+    <ProjectGuid>{7DB7E436-59B7-4515-9A03-8BB3EDC5B436}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
@@ -37,34 +37,26 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;xml;gui;widgets</QtModules>
+    <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;widgets;xml</QtModules>
+    <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
   </Target>
-  <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.props" />
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(QtMsBuild)\Qt.props" />
-    <Import Project="..\props\cudad.props" />
-    <Import Project="..\props\opencvd.props" />
-    <Import Project="..\props\tensorrt.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(QtMsBuild)\Qt.props" />
-    <Import Project="..\props\cudad.props" />
-    <Import Project="..\props\opencv.props" />
-    <Import Project="..\props\tensorrt.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
@@ -100,55 +92,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DnfFullScreen.cpp" />
-    <ClCompile Include="DnfMiniMap.cpp" />
-    <ClCompile Include="hsvselect.cpp" />
-    <ClCompile Include="picwindow.cpp" />
-    <ClCompile Include="qhotkey.cpp" />
-    <ClCompile Include="qhotkey_win.cpp" />
-    <ClCompile Include="qimagewidget.cpp" />
-    <QtRcc Include="autoxml.qrc" />
-    <QtUic Include="autoxml.ui" />
-    <QtMoc Include="autoxml.h" />
-    <ClCompile Include="autoxml.cpp" />
+    <QtRcc Include="QtWidgetsApplication.qrc" />
     <ClCompile Include="main.cpp" />
-    <QtUic Include="hsvselect.ui" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="qhotkey.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="qhotkey_p.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ClassAbstract.h" />
-    <ClInclude Include="cpm.hpp" />
-    <QtMoc Include="hsvselect.h" />
-    <ClInclude Include="DnfFullScreen.h" />
-    <QtMoc Include="DnfMiniMap.h" />
-    <ClInclude Include="infer.hpp" />
-    <QtMoc Include="picwindow.h" />
-    <ClInclude Include="qimagewidget.h" />
-    <ClInclude Include="yolo.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="infer.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </CudaCompile>
-    <CudaCompile Include="yolo.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </CudaCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
     <Import Project="$(QtMsBuild)\qt.targets" />
   </ImportGroup>
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.targets" />
   </ImportGroup>
 </Project>

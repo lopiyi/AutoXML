@@ -6,19 +6,98 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
+#include "hsvselect.h"
+#include <windows.h>
+#include <setupapi.h>
+#include <devguid.h>
 
 using namespace cv;
 using namespace std;
+#include <windows.h>
+#include <dshow.h>
+#include <vector>
+#include <string>
+#include <iostream>
 
-yolo::Image cvimg(const cv::Mat& image) { return yolo::Image(image.data, image.cols, image.rows); }
+#pragma comment(lib, "Strmiids.lib")
+
+
+std::vector<std::wstring> EnumerateVideoCaptureDevices() {
+    std::vector<std::wstring> devicePaths;
+
+    // Initialize COM library
+    HRESULT hr = CoInitialize(NULL);
+    if (FAILED(hr)) {
+        std::cerr << "Failed to initialize COM library" << std::endl;
+        return devicePaths;
+    }
+
+    // Create the system device enumerator
+    ICreateDevEnum* pCreateDevEnum = NULL;
+    hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER,
+        IID_ICreateDevEnum, (void**)&pCreateDevEnum);
+    if (FAILED(hr)) {
+        std::cerr << "Failed to create device enumerator" << std::endl;
+        CoUninitialize();
+        return devicePaths;
+    }
+
+    // Create an enumerator for video capture devices
+    IEnumMoniker* pEnumMoniker = NULL;
+    hr = pCreateDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pEnumMoniker, 0);
+    if (hr == S_FALSE) {
+        std::cerr << "No video capture devices found" << std::endl;
+        pCreateDevEnum->Release();
+        CoUninitialize();
+        return devicePaths;
+    }
+    else if (FAILED(hr)) {
+        std::cerr << "Failed to create enumerator for video capture devices" << std::endl;
+        pCreateDevEnum->Release();
+        CoUninitialize();
+        return devicePaths;
+    }
+
+    // Enumerate video capture devices
+    IMoniker* pMoniker = NULL;
+    while (pEnumMoniker->Next(1, &pMoniker, NULL) == S_OK) {
+        IPropertyBag* pPropBag = NULL;
+        hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void**)&pPropBag);
+        if (SUCCEEDED(hr)) {
+            VARIANT var;
+            VariantInit(&var);
+            hr = pPropBag->Read(L"FriendlyName", &var, 0);
+            if (SUCCEEDED(hr)) {
+                std::wcout << L"Device Name: " << var.bstrVal << std::endl;
+                VariantClear(&var);
+            }
+
+            hr = pMoniker->GetDisplayName(NULL, NULL, &var.bstrVal);
+            if (SUCCEEDED(hr)) {
+                std::wcout << L"Device Path: " << var.bstrVal << std::endl;
+                devicePaths.push_back(var.bstrVal);
+                VariantClear(&var);
+            }
+
+            pPropBag->Release();
+        }
+        pMoniker->Release();
+    }
+
+    // Clean up
+    pEnumMoniker->Release();
+    pCreateDevEnum->Release();
+    CoUninitialize();
+
+    return devicePaths;
+}
 
 AutoXML::AutoXML(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
-    loadClasses();
     dafaultPath();
-    hotkeyjietu = new QHotkey(QKeySequence("delete"), true);
+    hotkeyjietu = new QHotkey(QKeySequence("~"), true);
     imageScence = new QGraphicsScene(this);
     ui.graphicsView->setScene(imageScence);
     // 快捷键注册
@@ -26,118 +105,51 @@ AutoXML::AutoXML(QWidget *parent)
         on_pbsave_clicked();
         });
     connect(ui.addYolo, &QPushButton::clicked, this, &AutoXML::on_loadYolo_clicked);
+    connect(ui.actionhsv, &QAction::triggered, [this]() {
+        HSVSelect* hsv = HSVSelect::getInstance();
+        hsv->show();
+        if (image.empty())
+            return;
+        hsv->setImage(image,true);
+        });
+    connect(ui.screenScale, &QComboBox::currentTextChanged, [this]() {
+        ui.addYolo->setText(ui.screenScale->currentText()+u8"设置");
+        if (classMap.keys().contains(lastClass))
+        {
+            classMap.value(lastClass)->reset();
+            lastClass = ui.screenScale->currentText();
+        }
+        });
+    ClassAbstract* abstract1 = new DnfFullScreen;
+    ui.screenScale->addItem(abstract1->getName());
+    classMap.insert(abstract1->getName(), abstract1);
+
+    ClassAbstract* abstract2 = new DnfMiniMap;
+    ui.screenScale->addItem(abstract2->getName());
+    classMap.insert(abstract2->getName(), abstract2);
+
+    lastClass = ui.screenScale->currentText();
+
+    connect(ui.pbadd, &QPushButton::clicked, this, [this]() {
+        auto cameraDevicePaths = EnumerateVideoCaptureDevices();
+        if (cameraDevicePaths.empty()) {
+            qDebug() << "No camera devices found.";
+            return -1;
+        }
+        for (auto&str: cameraDevicePaths)
+        {
+            QString qstr = QString::fromStdWString(str);
+            qDebug() << qstr;
+        }
+        });
 }
 
 AutoXML::~AutoXML()
-{}
-
-void AutoXML::saveXMLAndPic()
 {
-    QString name = QString("%1.%2").arg(ui.spinBox->text()).arg(ui.comboBox->currentText());
-    QString savePath = QString("%1/%2").arg(picPath).arg(name);
-    QString anaName = QString("%1/%2.xml").arg(anaPath).arg(ui.spinBox->text());
-    QFile file(anaName); //相对路径、绝对路径、资源路径都可以
-    if (!file.open(QFile::WriteOnly | QFile::Truncate)) //可以用QIODevice，Truncate表示清空原来的内容
-        return;
-    QDomDocument doc;
-    QDomElement root = doc.createElement("annotation"); //创建根元素
-    doc.appendChild(root); //添加根元素
-
-    QDomElement folder = doc.createElement("folder");
-    folder.appendChild(doc.createTextNode(ui.comboBox->currentText())); //为folder元素增加文本
-
-    QDomElement filename = doc.createElement("filename");
-    filename.appendChild(doc.createTextNode(name)); //为filename元素增加文本
-
-    QDomElement path = doc.createElement("path");
-    path.appendChild(doc.createTextNode(savePath)); //为folder元素增加文本
-
-    root.appendChild(folder); //添加根元素
-    root.appendChild(filename); //添加根元素
-    root.appendChild(path); //添加根元素
-
-    QDomElement source = doc.createElement("source");
-    QDomElement database = doc.createElement("database");
-    database.appendChild(doc.createTextNode("Unknown"));
-    source.appendChild(database);
-    root.appendChild(source); //添加根元素
-
-    QDomElement size = doc.createElement("size");
-    QDomElement width = doc.createElement("width");
-    width.appendChild(doc.createTextNode(QString("%1").arg(image.cols)));
-    size.appendChild(width);
-    QDomElement height = doc.createElement("height");
-    height.appendChild(doc.createTextNode(QString("%1").arg(image.rows)));
-    size.appendChild(height);
-    QDomElement depth = doc.createElement("depth");
-    depth.appendChild(doc.createTextNode("3"));
-    size.appendChild(depth);
-    root.appendChild(size); //添加根元素
-
-    QDomElement segmented = doc.createElement("segmented");
-    segmented.appendChild(doc.createTextNode("0"));
-    root.appendChild(segmented); //添加根元素
-
-    for (auto& obj : objs) {
-        if (obj.class_label >= ui.sbmin->value() && obj.class_label <= ui.sbmax->value()) {
-            auto yoloname = cocolabels[obj.class_label];
-            QDomElement object = doc.createElement("object");
-            QDomElement objname = doc.createElement("name");
-            objname.appendChild(doc.createTextNode(yoloname));
-            object.appendChild(objname);
-
-            QDomElement pose = doc.createElement("pose");
-            pose.appendChild(doc.createTextNode("Unspecified"));
-            object.appendChild(pose);
-
-            QDomElement truncated = doc.createElement("truncated");
-            truncated.appendChild(doc.createTextNode("0"));
-            object.appendChild(truncated);
-
-            QDomElement difficult = doc.createElement("difficult");
-            difficult.appendChild(doc.createTextNode("0"));
-            object.appendChild(difficult);
-
-            QDomElement bndbox = doc.createElement("bndbox");
-            QDomElement xmin = doc.createElement("xmin");
-            xmin.appendChild(doc.createTextNode(QString("%1").arg(qRound(obj.left))));
-            bndbox.appendChild(xmin);
-            QDomElement ymin = doc.createElement("ymin");
-            ymin.appendChild(doc.createTextNode(QString("%1").arg(qRound(obj.top))));
-            bndbox.appendChild(ymin);
-            QDomElement xmax = doc.createElement("xmax");
-            xmax.appendChild(doc.createTextNode(QString("%1").arg(qRound(obj.right))));
-            bndbox.appendChild(xmax);
-            QDomElement ymax = doc.createElement("ymax");
-            ymax.appendChild(doc.createTextNode(QString("%1").arg(qRound(obj.bottom))));
-            bndbox.appendChild(ymax);
-            object.appendChild(bndbox);
-            root.appendChild(object); //添加根元素
-        }
-    }
-    QTextStream out_stream(&file); //输出到文件
-    doc.save(out_stream, 8); //缩进8格
-    file.close();
-    imwrite(savePath.toLocal8Bit().toStdString(), image);
-}
-
-void AutoXML::loadClasses()
-{
-    QFile f("voc_classes.txt");
-    if (!f.open(QIODevice::ReadOnly | QIODevice::Text))
+    for (auto it = classMap.begin(); it != classMap.end(); ++it)
     {
-        qDebug() << (u8"打开文件失败");
+        it.value()->reset();
     }
-    QTextStream txtInput(&f);
-    QString lineStr;
-    cocolabels.clear();
-    while (!txtInput.atEnd())
-    {
-        lineStr = txtInput.readLine();
-        qDebug() << (lineStr);
-        cocolabels << lineStr.simplified();
-    }
-    f.close();
 }
 
 void AutoXML::dafaultPath()
@@ -160,57 +172,33 @@ void AutoXML::dafaultPath()
     QFileInfoList fileInfoList = dir1.entryInfoList(filter);
     int count = fileInfoList.count() - 2;
     ui.spinBox->setValue(count);
-}
+} 
 
-bool AutoXML::GetScreenBmp(int left, int top, int width, int height, cv::Mat& image)
+bool AutoXML::getDNFImage()
 {
-    BitBlt(memDC, 0, 0, width, height, pDC, left, top, SRCCOPY);//图像宽度高度和截取位置
-    BITMAP bmp;
-    GetObject(memBitmap, sizeof(BITMAP), &bmp);
-    image.create(cvSize(bmp.bmWidth, bmp.bmHeight), CV_MAKETYPE(CV_8U, 4));
-
-    GetBitmapBits(memBitmap, bmp.bmHeight * bmp.bmWidth * 4, image.data);
-
-    cvtColor(image, image, CV_BGRA2BGR);
-
-    return true;
-}
-
-void AutoXML::getDNFImage()
-{
-    switch (ui.screenScale->currentIndex()) {
-    case 0:
-        GetScreenBmp(0, 0, 1067, 600, image);
-        break;
-    case 1:
-        GetScreenBmp(0, 0, 800, 600, image);
-        break;
-    case 2:
-        GetScreenBmp(0, 0, 960, 600, image);
-        break;
-    default:
-        GetScreenBmp(0, 0, 1067, 600, image);
-        break;
+    Data m_data;
+    m_data.picPath = picPath;
+    m_data.anaPath = anaPath;
+    m_data.index = ui.spinBox->value();
+    m_data.imgsuf = ui.comboBox->currentText();
+    m_data.name = QString::number(ui.spinBox->value());
+    m_data.min = ui.sbmin->value();
+    m_data.max = ui.sbmax->value();
+    image = classMap.value(ui.screenScale->currentText())->detect(m_data);
+    if (image.empty())
+    {
+        QMessageBox::critical(this, u8"错误", ui.screenScale->currentText()+u8"取图失败！！");
+        return false;
     }
+    return true;
 }
 
 void AutoXML::update()
 {
+    imageScence->clear();
     ui.graphicsView->resetTransform();
     Mat RGBimage = image.clone();
-    for (auto& obj : objs) {
-        if (obj.class_label >= ui.sbmin->value() && obj.class_label <= ui.sbmax->value()) {
-            uint8_t b, g, r;
-            tie(b, g, r) = yolo::random_color(obj.class_label);
-            cv::rectangle(RGBimage, cv::Point(obj.left, obj.top), cv::Point(obj.right, obj.bottom), cv::Scalar(b, g, r), 1);
-            auto name = cocolabels[obj.class_label].toStdString();
-            auto caption = cv::format("%.2f %s", obj.confidence, name.c_str());
-            int width = cv::getTextSize(caption, 3, 1, 1, nullptr).width * 0.4;
-            cv::rectangle(RGBimage, cv::Point(obj.left - 3, obj.top - 18), cv::Point(obj.left + width, obj.top), cv::Scalar(b, g, r), -1);
-            cv::putText(RGBimage, caption, cv::Point(obj.left, obj.top - 5), 0, 0.4, cv::Scalar::all(0), 1, 6);
-            line(RGBimage, Point((obj.left + obj.right) / 2, obj.bottom - 5), Point((obj.left + obj.right) / 2, obj.bottom + 5), Scalar(b, g, r), 2);
-        }
-    }
+
     auto qimg = QImage((unsigned char*)RGBimage.data, // 图像数据
         RGBimage.cols, RGBimage.rows, // 图像尺寸
         RGBimage.step, //bytesPerLine  ***
@@ -238,38 +226,43 @@ void AutoXML::on_pushButton_clicked()
 void AutoXML::on_pbsave_clicked()
 {
     if (picPath.isEmpty()) { QMessageBox::about(this, tr(u8"提示"), tr(u8"图片保存目录未设置")); return; }
-    if (anaPath.isEmpty()) { QMessageBox::about(this, tr(u8"提示"), tr(u8"标签保存目录未设置")); return; }
-    imageScence->clear();
-    
-    if (yolo == nullptr) {
-        on_loadYolo_clicked();
-    }
-    if (yolo == nullptr)
-    {
+    if (anaPath.isEmpty()) { QMessageBox::about(this, tr(u8"提示"), tr(u8"标签保存目录未设置")); return; }    
+    //if (yolo == nullptr) {
+    //    on_loadYolo_clicked();
+    //}
+    //if (yolo == nullptr)
+    //{
+    //    return;
+    //}
+    if (!getDNFImage()) {
         return;
     }
-    getDNFImage();
-    objs = yolo->forward(cvimg(image.clone()));
-    saveXMLAndPic();
     update();
 }
 
 void AutoXML::on_loadYolo_clicked()
 {
-    if (yolo == nullptr) {
-        yolo = yolo::load("yolo_FP16.trt", yolo::Type::X, 0.3, 0.5);
-        if (yolo == nullptr) {
-            QMessageBox::critical(this, tr(u8"错误"), tr(u8"YOLO模型加载失败"));
-            return;
-        }
-        else {
-            ui.addYolo->setText(u8"释放YOLO模型");
-        }
-    }
-    else {
-        yolo.reset();
-        ui.addYolo->setText(u8"加载YOLO模型");
-    }
-
+    //if (yolo == nullptr) {
+    //    yolo = yolo::load("yolo_FP16.trt", yolo::Type::X, 0.3, 0.5);
+    //    if (yolo == nullptr) {
+    //        QMessageBox::critical(this, tr(u8"错误"), tr(u8"YOLO模型加载失败"));
+    //        return;
+    //    }
+    //    else {
+    //        for (auto it = classMap.begin(); it != classMap.end(); ++it) {
+    //            it.value()->setYolo(yolo);
+    //        }
+    //        ui.addYolo->setText(u8"释放YOLO模型");
+    //    }
+    //}
+    //else {
+    //    yolo.reset();
+    //    ui.addYolo->setText(u8"加载YOLO模型");
+    //    if (capture.isOpened())
+    //    {
+    //        capture.release();
+    //    }
+    //}
+    classMap.value(ui.screenScale->currentText())->setting();
 }
 
